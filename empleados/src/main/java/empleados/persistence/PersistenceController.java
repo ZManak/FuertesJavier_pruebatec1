@@ -7,6 +7,8 @@ package empleados.persistence;
 import controlsys.empleados.EmpleadoJpaController;
 import controlsys.empleados.exceptions.NonexistentEntityException;
 import empleados.models.Empleado;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,6 +36,40 @@ public class PersistenceController {
   public List<Empleado> sacarEmpleados () {
       return empJPA.findEmpleadoEntities();
   }
+
+    public Empleado sacarNombre (String name) {
+     
+        List<Empleado> empleados = empJPA.findEmpleadoEntities();
+        for (Empleado emp : empleados) {
+            if (emp.getName().equals(name)) {
+                return emp;
+            }
+        }
+        return null;
+    }
+
+    public Empleado sacarId (int id) {
+
+        List<Empleado> empleados = empJPA.findEmpleadoEntities();
+        for (Empleado emp : empleados) {
+            if (emp.getId() == id) {
+                return emp;
+            }
+        }
+        return null;
+    }
+
+    public List<Empleado> sacarPosition (String position) {
+
+        List<Empleado> empleados = empJPA.findEmpleadoEntities();
+        List<Empleado> sortedByPosition = new ArrayList<>();
+        for (Empleado emp : empleados) {
+            if (emp.getPosition().equals(position)) {
+                sortedByPosition.add(emp);
+            }
+        }
+        return sortedByPosition;
+    }
   
   public void modificarEmpleado (Empleado emp) {
   
