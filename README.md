@@ -13,21 +13,17 @@ The "empleados" project is a Java application for managing employees. It provide
 - Sort employees by name or position.
 
 ## Usage
-1. Create new employees:
+The application interacted through console inputs. It will run until the user introduces the corresponding exit commands.
+   
    ```java
-   Employee employee = new Employee();
-   employee.setName("John Doe");
-   employee.setPosition("Manager");
+   // Create new employees in DDBB:
+   Employee employee = new Employee(String name, String surname, String position, Double salary, LocalDate join_date);
+    EmployeeJpaController.create(employee)
 
-   // Set other attributes as needed
+   // Search an employee by ID
    EmployeeJpaController.create(employee);
    int employeeId = 1; // Example employee ID
-   Employee employee = EmployeeJpaController.findEmployee(employeeId);
-    if (employee != null) {
-
-   // Access employee attributes
-   String name = employee.getName();
-   String position = employee.getPosition();
+   Employee emp = EmployeeJpaController.findEmployee(employeeId);
 
    // Update entries
    int employeeId = 1;
@@ -37,12 +33,8 @@ The "empleados" project is a Java application for managing employees. It provide
 
    // Delete
    int employeeId = 1;
-   try {
-   EmployeeJpaController.delete(employeeId);
-   } catch (NonexistentEntityException ex) {
-
-   // Handle exception if employee does not exist
-   Logger.getLogger(PersistenceController.class.getName()).log(Level.SEVERE, null, ex);
-   }
+ EmployeeJpaController.delete(employeeId);
+   
    ```
    
+Most of the CRUD operations throw exceptions that are handled by try/catch, avoiding runtime crashes caused by invalid inputs, non existent or duplicated entities...
