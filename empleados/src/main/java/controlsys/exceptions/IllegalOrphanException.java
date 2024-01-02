@@ -1,4 +1,4 @@
-package controlsys.empleados.exceptions;
+package controlsys.exceptions;
 
 import java.util.ArrayList;
 import java.util.List;
