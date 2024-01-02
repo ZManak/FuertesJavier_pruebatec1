@@ -1,4 +1,4 @@
-package controlsys.empleados.exceptions;
+package controlsys.exceptions;
 
 public class PreexistingEntityException extends Exception {
     public PreexistingEntityException(String message, Throwable cause) {

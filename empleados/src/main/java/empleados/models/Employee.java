@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package empleados.models;
 
 import java.io.Serializable;
@@ -11,36 +7,40 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-
 /**
- *
+ * This class represents the employee entity, it has the attributes of the
+ * employee.
+ * It also has the getters and setters of the attributes, as well the
+ * constructors.
+ * It also has the annotations to be used by the JPA
+ * 
  * @author Manak
  */
 
 @Entity
-public class Empleado implements Serializable {
+public class Employee implements Serializable {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String name;
     private String surname;
     private String position;
     private double salary;
     private LocalDate join_date;
-    
-    public Empleado(){
-        
+
+    public Employee() {
+
     }
 
-    public Empleado(String name, String surname, String position, double salary, LocalDate join_date) {
+    public Employee(String name, String surname, String position, double salary, LocalDate join_date) {
         this.name = name;
         this.surname = surname;
         this.position = position;
         this.salary = salary;
         this.join_date = join_date;
     }
-    
+
     public String getName() {
         return name;
     }
@@ -88,5 +88,5 @@ public class Empleado implements Serializable {
     public void setId(int id) {
         this.id = id;
     }
-    
+
 }

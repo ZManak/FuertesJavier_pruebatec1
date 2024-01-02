@@ -1,11 +1,8 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-package controlsys.empleados;
 
-import controlsys.empleados.exceptions.NonexistentEntityException;
-import empleados.models.Empleado;
+package controlsys;
+
+import controlsys.exceptions.NonexistentEntityException;
+import empleados.models.Employee;
 import java.io.Serializable;
 import java.util.List;
 import javax.persistence.EntityManager;
@@ -17,25 +14,45 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
 /**
- *
+ * This class is in charge of the CRUD operations of the employee entity
+ * 
  * @author Manak
  */
-public class EmpleadoJpaController implements Serializable {
+public class EmployeeJpaController implements Serializable {
 
-   public EmpleadoJpaController(EntityManagerFactory emf) {
+    /**
+     * Constructor of the class
+     * 
+     * @param emf
+     */
+    public EmployeeJpaController(EntityManagerFactory emf) {
         this.emf = emf;
     }
-    
-    public EmpleadoJpaController() {
-      emf = Persistence.createEntityManagerFactory("controlSysPersistence");
+
+    /**
+     * Default constructor of the class
+     */
+    public EmployeeJpaController() {
+        emf = Persistence.createEntityManagerFactory("controlSysPersistence");
     }
+
+    /**
+     * Entity manager factory, used to create the entity manager and perform the
+     * CRUD operations
+     */
     private EntityManagerFactory emf = null;
 
     public EntityManager getEntityManager() {
         return emf.createEntityManager();
     }
 
-    public void create(Empleado empleado) {
+    /**
+     * Method to create an employee, it receives an employee object and persists it,
+     * then tries to commit the transaction
+     * 
+     * @param empleado
+     */
+    public void create(Employee empleado) {
         EntityManager em = null;
         try {
             em = getEntityManager();
@@ -49,7 +66,15 @@ public class EmpleadoJpaController implements Serializable {
         }
     }
 
-    public void edit(Empleado empleado) throws NonexistentEntityException, Exception {
+    /**
+     * Method to edit an employee, it receives an employee object and merges it,
+     * then tries to commit the transaction
+     * 
+     * @param empleado
+     * @throws NonexistentEntityException
+     * @throws Exception
+     */
+    public void edit(Employee empleado) throws NonexistentEntityException, Exception {
         EntityManager em = null;
         try {
             em = getEntityManager();
@@ -60,7 +85,7 @@ public class EmpleadoJpaController implements Serializable {
             String msg = ex.getLocalizedMessage();
             if (msg == null || msg.length() == 0) {
                 int id = empleado.getId();
-                if (findEmpleado(id) == null) {
+                if (findEmployee(id) == null) {
                     throw new NonexistentEntityException("The employeee with id " + id + " no longer exists.");
                 }
             }
@@ -72,14 +97,21 @@ public class EmpleadoJpaController implements Serializable {
         }
     }
 
+    /**
+     * Method to destroy an employee, it receives an employee id and tries to find
+     * it, then tries to destroy it
+     * 
+     * @param id
+     * @throws NonexistentEntityException
+     */
     public void destroy(int id) throws NonexistentEntityException {
         EntityManager em = null;
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            Empleado empleado;
+            Employee empleado;
             try {
-                empleado = em.getReference(Empleado.class, id);
+                empleado = em.getReference(Employee.class, id);
                 empleado.getId();
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The persona with id " + id + " no longer exists.", enfe);
@@ -93,19 +125,42 @@ public class EmpleadoJpaController implements Serializable {
         }
     }
 
-    public List<Empleado> findEmpleadoEntities() {
+    /**
+     * Method to find all the employees, it creates a query and returns the result
+     * list
+     * 
+     * @return
+     */
+    public List<Employee> findEmployeeEntities() {
         return findEmpleadoEntities(true, -1, -1);
     }
 
-    public List<Empleado> findEmpleadoEntities(int maxResults, int firstResult) {
+    /**
+     * Method to find all the employees, it creates a query and returns the result
+     * list with a limit and an offset
+     * 
+     * @param maxResults
+     * @param firstResult
+     * @return
+     */
+    public List<Employee> findEmpleadoEntities(int maxResults, int firstResult) {
         return findEmpleadoEntities(false, maxResults, firstResult);
     }
 
-    private List<Empleado> findEmpleadoEntities(boolean all, int maxResults, int firstResult) {
+    /**
+     * Method to find all the employees, it creates a query and returns the result
+     * list with a limit and an offset
+     * 
+     * @param all
+     * @param maxResults
+     * @param firstResult
+     * @return
+     */
+    private List<Employee> findEmpleadoEntities(boolean all, int maxResults, int firstResult) {
         EntityManager em = getEntityManager();
         try {
             CriteriaQuery cq = em.getCriteriaBuilder().createQuery();
-            cq.select(cq.from(Empleado.class));
+            cq.select(cq.from(Employee.class));
             Query q = em.createQuery(cq);
             if (!all) {
                 q.setMaxResults(maxResults);
@@ -117,20 +172,32 @@ public class EmpleadoJpaController implements Serializable {
         }
     }
 
-    public Empleado findEmpleado(int id) {
+    /**
+     * Method to find an employee, it receives an employee id and tries to find it
+     * 
+     * @param id
+     * @return
+     */
+    public Employee findEmployee(int id) {
         EntityManager em = getEntityManager();
         try {
-            return em.find(Empleado.class, id);
+            return em.find(Employee.class, id);
         } finally {
             em.close();
         }
     }
 
-    public int getEmpleadoCount() {
+    /**
+     * Method to find the number of employees, it creates a query and returns the
+     * result list
+     * 
+     * @return
+     */
+    public int getEmployeeCount() {
         EntityManager em = getEntityManager();
         try {
             CriteriaQuery cq = em.getCriteriaBuilder().createQuery();
-            Root<Empleado> rt = cq.from(Empleado.class);
+            Root<Employee> rt = cq.from(Employee.class);
             cq.select(em.getCriteriaBuilder().count(rt));
             Query q = em.createQuery(cq);
             return ((Long) q.getSingleResult()).intValue();
@@ -138,5 +205,5 @@ public class EmpleadoJpaController implements Serializable {
             em.close();
         }
     }
-    
+
 }
