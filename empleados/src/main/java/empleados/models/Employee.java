@@ -38,16 +38,14 @@ public class Employee implements Serializable {
     public Employee(String name, String surname, String position, double salary, LocalDate join_date)
             throws InvalidDataException {
         if (name.equals("") || surname.equals("") || position.equals("")) {
-            throw new InvalidDataException(
-
-            );
+            throw new InvalidDataException();
+        } else {
+            this.name = name;
+            this.surname = surname;
+            this.position = position;
+            this.salary = salary;
+            this.join_date = join_date;
         }
-        this.name = name;
-        this.surname = surname;
-        this.position = position;
-        this.salary = salary;
-        this.join_date = join_date;
-
     }
 
     public String getName() {

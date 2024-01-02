@@ -56,7 +56,6 @@ public class Empleados {
                     System.out.println("Id: ");
                     int id1 = Integer.parseInt(sc.nextLine());
                     controller.deleteEmployee(id1);
-                    System.out.println("Employee id." + id1 + " deleted");
                 }
                 case 5 -> {
                     List<Employee> employees = controller.findEmployee();
@@ -101,18 +100,18 @@ public class Empleados {
      */
     public static void createEmployee(PersistenceController controller, Scanner sc, DecimalFormat decimalFormat)
             throws Exception {
-        System.out.println("Name: ");
-        String name = sc.nextLine();
-        System.out.println("Surname: ");
-        String surname = sc.nextLine();
-        System.out.println("Position: ");
-        String position = sc.nextLine();
-        System.out.println("Salary: ");
-        double salary = Double.parseDouble(sc.nextLine());
-        System.out.println("Join date (dd-MM-yyyy): ");
-        String joinDate = sc.nextLine();
-        LocalDate date = LocalDate.parse(joinDate, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         try {
+            System.out.println("Name: ");
+            String name = sc.nextLine();
+            System.out.println("Surname: ");
+            String surname = sc.nextLine();
+            System.out.println("Position: ");
+            String position = sc.nextLine();
+            System.out.println("Salary: ");
+            double salary = Double.parseDouble(sc.nextLine());
+            System.out.println("Join date (dd-MM-yyyy): ");
+            String joinDate = sc.nextLine();
+            LocalDate date = LocalDate.parse(joinDate, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
             Employee emp = new Employee(name, surname, position, salary, date);
             controller.createEmployee(emp);
             System.out.println("Employee created");
@@ -140,24 +139,45 @@ public class Empleados {
      */
     public static void searchEmployee(PersistenceController controller, Scanner sc, DecimalFormat decimalFormat)
             throws Exception {
-        System.out.println("Search by: ");
-        System.out.println("1. Surname");
-        System.out.println("2. Position");
-        int option = Integer.parseInt(sc.nextLine());
-        switch (option) {
-            case 1 -> {
-                System.out.println("Surname: ");
-                String surname = sc.nextLine();
-                Employee employee = controller.findSurname(surname);
-                printEmpleado(employee, decimalFormat);
+        try {
+            System.out.println("Search by: ");
+            System.out.println("1. Surname");
+            System.out.println("2. Position");
+            int option = Integer.parseInt(sc.nextLine());
+            switch (option) {
+                case 1 -> {
+                    System.out.println("Surname: ");
+                    String surname = sc.nextLine();
+                    if (surname.equals("")) {
+                        throw new InvalidDataException();
+                    }
+                    try {
+                        Employee employee = controller.findSurname(surname);
+                        printEmpleado(employee, decimalFormat);
+                    } catch (Exception ex) {
+                        System.out.println("Employee not found");
+                    }
+                }
+                case 2 -> {
+                    System.out.println("Position: ");
+                    String position = sc.nextLine();
+                    if (position.equals("")) {
+                        throw new InvalidDataException();
+                    }
+                    try {
+                        List<Employee> employeesByPosition = controller.findPosition(position);
+                        printEmpleados(employeesByPosition, decimalFormat);
+                    } catch (Exception ex) {
+                        System.out.println("Position not found");
+                    }
+                }
+                default -> System.out.println("Invalid option");
             }
-            case 2 -> {
-                System.out.println("Position: ");
-                String position = sc.nextLine();
-                List<Employee> employeesByPosition = controller.findPosition(position);
-                printEmpleados(employeesByPosition, decimalFormat);
-            }
-
+            System.out.println("\nEnter to continue...");
+        } catch (InvalidDataException ex) {
+            System.out.println(ex.getMessage());
+        } catch (Exception ex) {
+            Logger.getLogger(Empleados.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -175,6 +195,9 @@ public class Empleados {
         try {
             System.out.println("Id: ");
             int id = Integer.parseInt(sc.nextLine());
+            if (id < 0 || id > controller.findEmployee().size()) {
+                throw new InvalidDataException();
+            }
             Employee employee = controller.findId(id);
             System.out.println("Updating: " + employee.getName() + " " + employee.getSurname());
             System.out.println("New name: ");
@@ -200,6 +223,8 @@ public class Empleados {
         } catch (InvalidDataException ex) {
             System.out.println(ex.getMessage());
         } catch (NonexistentEntityException ex) {
+            Logger.getLogger(Empleados.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
             Logger.getLogger(Empleados.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

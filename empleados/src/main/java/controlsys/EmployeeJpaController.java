@@ -130,6 +130,7 @@ public class EmployeeJpaController implements Serializable {
             }
             em.remove(empleado);
             em.getTransaction().commit();
+            System.out.println("Employee deleted");
         } finally {
             if (em != null) {
                 em.close();

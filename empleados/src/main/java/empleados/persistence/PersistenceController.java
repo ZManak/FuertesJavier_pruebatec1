@@ -60,13 +60,22 @@ public class PersistenceController {
         return null;
     }
 
-    public Employee findId(int id) throws Exception {
-
-        List<Employee> employees = empJPA.findEmployeeEntities();
-        for (Employee emp : employees) {
-            if (emp.getId() == id) {
-                return emp;
+    public Employee findId(Integer id) throws Exception {
+        if (id < 0 || id == null || !(id instanceof Integer)) {
+            throw new InvalidDataException();
+        }
+        try {
+            List<Employee> employees = empJPA.findEmployeeEntities();
+            for (Employee emp : employees) {
+                if (emp.getId() == id) {
+                    return emp;
+                }
             }
+        } catch (NonexistentEntityException ex) {
+            Logger.getLogger(empleados.persistence.PersistenceController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidDataException ex) {
+            Logger.getLogger(empleados.persistence.PersistenceController.class.getName()).log(Level.SEVERE, null, ex);
+
         }
         return null;
     }
