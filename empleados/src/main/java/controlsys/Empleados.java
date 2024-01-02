@@ -13,6 +13,10 @@ import static empleados.constants.Colors.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import controlsys.exceptions.InvalidDataException;
+import controlsys.exceptions.NonexistentEntityException;
+import controlsys.exceptions.PreexistingEntityException;
+
 /**
  * The Empleados class is the main class that manages the employee system.
  * It provides options to add, search, modify, and delete employees, as well as
@@ -26,7 +30,7 @@ import java.util.logging.Logger;
  */
 public class Empleados {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
         PersistenceController controller = new PersistenceController();
         Scanner sc = new Scanner(System.in);
@@ -36,39 +40,34 @@ public class Empleados {
         do {
             printMenu();
             System.out.println("Choose an option: ");
-            int option = Integer.parseInt(sc.nextLine());
 
-            try {
-                switch (option) {
-                    case 1 -> {
-                        createEmployee(controller, sc, df);
-                    }
-                    case 2 -> {
-                        searchEmployee(controller, sc, df);
-                    }
-                    case 3 -> {
-                        modifyEmployee(controller, sc, df);
-                    }
-                    case 4 -> {
-                        System.out.println("Id: ");
-                        int id1 = Integer.parseInt(sc.nextLine());
-                        controller.deleteEmployee(id1);
-                        System.out.println("Employee id." + id1 + " deleted");
-                    }
-                    case 5 -> {
-                        List<Employee> employees = controller.findEmployee();
-                        printEmpleados(employees, df);
-                        System.out.println("\nEnter to continue...");
-                    }
-                    case 6 -> {
-                        System.out.println("Exiting...");
-                        System.exit(0);
-                    }
+            int option = Integer.parseInt(sc.nextLine());
+            switch (option) {
+                case 1 -> {
+                    createEmployee(controller, sc, df);
                 }
-            } catch (NumberFormatException ex) {
-                Logger.getLogger(Empleados.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (Exception e) {
-                Logger.getLogger(Empleados.class.getName()).log(Level.SEVERE, null, e);
+                case 2 -> {
+                    searchEmployee(controller, sc, df);
+                }
+                case 3 -> {
+                    modifyEmployee(controller, sc, df);
+                }
+                case 4 -> {
+                    System.out.println("Id: ");
+                    int id1 = Integer.parseInt(sc.nextLine());
+                    controller.deleteEmployee(id1);
+                    System.out.println("Employee id." + id1 + " deleted");
+                }
+                case 5 -> {
+                    List<Employee> employees = controller.findEmployee();
+                    printEmpleados(employees, df);
+                    System.out.println("\nEnter to continue...");
+                }
+                case 6 -> {
+                    System.out.println("Exiting...");
+                    System.exit(0);
+                }
+                default -> System.out.println("Invalid option");
             }
         } while (!"exit".equals(sc.nextLine()));
         System.out.println("Exiting...");
@@ -87,7 +86,8 @@ public class Empleados {
         System.out.println(GREEN_BOLD + "│ " + BLUE_BOLD + "3. Modify                   " + GREEN_BOLD + " ││" + RESET);
         System.out.println(GREEN_BOLD + "│ " + BLUE_BOLD + "4. Delete                   " + GREEN_BOLD + " ││" + RESET);
         System.out.println(GREEN_BOLD + "│ " + BLUE_BOLD + "5. Print All                " + GREEN_BOLD + " ││" + RESET);
-        System.out.println(GREEN_BOLD + "│ " + PURPLE_BOLD + "6. EXIT                     " + GREEN_BOLD + " ││" + RESET);
+        System.out
+                .println(GREEN_BOLD + "│ " + PURPLE_BOLD + "6. EXIT                     " + GREEN_BOLD + " ││" + RESET);
         System.out.println(PURPLE_UNDERLINED + "└──────────────────────────────┘┘" + RESET);
     }
 
@@ -99,7 +99,8 @@ public class Empleados {
      * @param sc            the Scanner object used to read user input
      * @param decimalFormat the DecimalFormat object used to format the salary
      */
-    public static void createEmployee(PersistenceController controller, Scanner sc, DecimalFormat decimalFormat) {
+    public static void createEmployee(PersistenceController controller, Scanner sc, DecimalFormat decimalFormat)
+            throws Exception {
         System.out.println("Name: ");
         String name = sc.nextLine();
         System.out.println("Surname: ");
@@ -111,14 +112,22 @@ public class Empleados {
         System.out.println("Join date (dd-MM-yyyy): ");
         String joinDate = sc.nextLine();
         LocalDate date = LocalDate.parse(joinDate, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-        Employee emp = new Employee(name, surname, position, salary, date);
-        controller.createEmployee(emp);
-        System.out.println("Employee created");
-        System.out.println("Id: " + emp.getId() + " Name: " + emp.getName() + " Surname: " + emp.getSurname()
-                + " Position: " + emp.getPosition() + " Salary: " + decimalFormat.format(emp.getSalary())
-                + " Join date: "
-                + emp.getJoin_Date().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
-        System.out.println("\nEnter to continue...");
+        try {
+            Employee emp = new Employee(name, surname, position, salary, date);
+            controller.createEmployee(emp);
+            System.out.println("Employee created");
+            System.out.println("Id: " + emp.getId() + " Name: " + emp.getName() + " Surname: " + emp.getSurname()
+                    + " Position: " + emp.getPosition() + " Salary: " + decimalFormat.format(emp.getSalary())
+                    + " Join date: "
+                    + emp.getJoin_Date().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
+            System.out.println("\nEnter to continue...");
+        } catch (InvalidDataException ex) {
+            System.out.println(ex.getMessage());
+        } catch (PreexistingEntityException ex) {
+            Logger.getLogger(Empleados.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(Empleados.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**
@@ -129,7 +138,8 @@ public class Empleados {
      * @param sc            the Scanner object used to read user input
      * @param decimalFormat the DecimalFormat object used to format the salary
      */
-    public static void searchEmployee(PersistenceController controller, Scanner sc, DecimalFormat decimalFormat) {
+    public static void searchEmployee(PersistenceController controller, Scanner sc, DecimalFormat decimalFormat)
+            throws Exception {
         System.out.println("Search by: ");
         System.out.println("1. Surname");
         System.out.println("2. Position");
@@ -158,32 +168,40 @@ public class Empleados {
      *                      employee data
      * @param sc            the Scanner object used to read user input
      * @param decimalFormat the DecimalFormat object used to format the salary
+     * @throws Exception
      */
-    public static void modifyEmployee(PersistenceController controller, Scanner sc, DecimalFormat decimalFormat) {
-        System.out.println("Id: ");
-        int id = Integer.parseInt(sc.nextLine());
-        Employee employee = controller.findId(id);
-        System.out.println("Updating: " + employee.getName() + " " + employee.getSurname());
-        System.out.println("New name: ");
-        String name = sc.nextLine();
-        System.out.println("New surname: ");
-        String surname = sc.nextLine();
-        System.out.println("New position: ");
-        String position = sc.nextLine();
-        System.out.println("New salary: ");
-        double salary = Double.parseDouble(sc.nextLine());
-        System.out.println("New join date (dd-MM-yyyy): ");
-        String date = sc.nextLine();
-        LocalDate joinDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-        employee.setName(name);
-        employee.setSurname(surname);
-        employee.setPosition(position);
-        employee.setSalary(salary);
-        employee.setJoin_Date(joinDate);
-        controller.updateEmployee(employee);
-        System.out.println("Employee updated");
-        printEmpleado(employee, decimalFormat);
-        System.out.println("\nEnter to continue...");
+    public static void modifyEmployee(PersistenceController controller, Scanner sc, DecimalFormat decimalFormat)
+            throws Exception {
+        try {
+            System.out.println("Id: ");
+            int id = Integer.parseInt(sc.nextLine());
+            Employee employee = controller.findId(id);
+            System.out.println("Updating: " + employee.getName() + " " + employee.getSurname());
+            System.out.println("New name: ");
+            String name = sc.nextLine();
+            System.out.println("New surname: ");
+            String surname = sc.nextLine();
+            System.out.println("New position: ");
+            String position = sc.nextLine();
+            System.out.println("New salary: ");
+            double salary = Double.parseDouble(sc.nextLine());
+            System.out.println("New join date (dd-MM-yyyy): ");
+            String date = sc.nextLine();
+            LocalDate joinDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+            employee.setName(name);
+            employee.setSurname(surname);
+            employee.setPosition(position);
+            employee.setSalary(salary);
+            employee.setJoin_Date(joinDate);
+            controller.updateEmployee(employee);
+            System.out.println("Employee updated");
+            printEmpleado(employee, decimalFormat);
+            System.out.println("\nEnter to continue...");
+        } catch (InvalidDataException ex) {
+            System.out.println(ex.getMessage());
+        } catch (NonexistentEntityException ex) {
+            Logger.getLogger(Empleados.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**

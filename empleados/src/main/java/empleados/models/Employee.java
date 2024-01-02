@@ -7,6 +7,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import controlsys.exceptions.InvalidDataException;
+
 /**
  * This class represents the employee entity, it has the attributes of the
  * employee.
@@ -33,12 +35,19 @@ public class Employee implements Serializable {
 
     }
 
-    public Employee(String name, String surname, String position, double salary, LocalDate join_date) {
+    public Employee(String name, String surname, String position, double salary, LocalDate join_date)
+            throws InvalidDataException {
+        if (name.equals("") || surname.equals("") || position.equals("")) {
+            throw new InvalidDataException(
+
+            );
+        }
         this.name = name;
         this.surname = surname;
         this.position = position;
         this.salary = salary;
         this.join_date = join_date;
+
     }
 
     public String getName() {
