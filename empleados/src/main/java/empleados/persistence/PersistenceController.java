@@ -5,7 +5,9 @@
 package empleados.persistence;
 
 import controlsys.EmployeeJpaController;
+import controlsys.exceptions.InvalidDataException;
 import controlsys.exceptions.NonexistentEntityException;
+import controlsys.exceptions.PreexistingEntityException;
 import empleados.models.Employee;
 
 import java.util.ArrayList;
@@ -24,8 +26,15 @@ public class PersistenceController {
 
     EmployeeJpaController empJPA = new EmployeeJpaController();
 
-    public void createEmployee(Employee emp) {
-        empJPA.create(emp);
+    public void createEmployee(Employee emp)
+            throws InvalidDataException, PreexistingEntityException, NonexistentEntityException {
+        try {
+            empJPA.create(emp);
+        } catch (InvalidDataException ex) {
+            System.out.println(ex.getMessage());
+        } catch (PreexistingEntityException ex) {
+            Logger.getLogger(empleados.persistence.PersistenceController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void deleteEmployee(int id) {
@@ -36,11 +45,11 @@ public class PersistenceController {
         }
     }
 
-    public List<Employee> findEmployee() {
+    public List<Employee> findEmployee() throws Exception {
         return empJPA.findEmployeeEntities();
     }
 
-    public Employee findSurname(String surname) {
+    public Employee findSurname(String surname) throws Exception {
 
         List<Employee> empleados = empJPA.findEmployeeEntities();
         for (Employee emp : empleados) {
@@ -51,18 +60,27 @@ public class PersistenceController {
         return null;
     }
 
-    public Employee findId(int id) {
-
-        List<Employee> employees = empJPA.findEmployeeEntities();
-        for (Employee emp : employees) {
-            if (emp.getId() == id) {
-                return emp;
+    public Employee findId(Integer id) throws Exception {
+        if (id < 0 || id == null || !(id instanceof Integer)) {
+            throw new InvalidDataException();
+        }
+        try {
+            List<Employee> employees = empJPA.findEmployeeEntities();
+            for (Employee emp : employees) {
+                if (emp.getId() == id) {
+                    return emp;
+                }
             }
+        } catch (NonexistentEntityException ex) {
+            Logger.getLogger(empleados.persistence.PersistenceController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidDataException ex) {
+            Logger.getLogger(empleados.persistence.PersistenceController.class.getName()).log(Level.SEVERE, null, ex);
+
         }
         return null;
     }
 
-    public List<Employee> findPosition(String position) {
+    public List<Employee> findPosition(String position) throws Exception {
 
         List<Employee> employees = empJPA.findEmployeeEntities();
         List<Employee> sortedByPosition = new ArrayList<>();
@@ -74,10 +92,13 @@ public class PersistenceController {
         return sortedByPosition;
     }
 
-    public void updateEmployee(Employee emp) {
-
+    public void updateEmployee(Employee emp) throws NonexistentEntityException, InvalidDataException {
         try {
             empJPA.edit(emp);
+        } catch (InvalidDataException ex) {
+            Logger.getLogger(empleados.persistence.PersistenceController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NonexistentEntityException ex) {
+            Logger.getLogger(empleados.persistence.PersistenceController.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
             Logger.getLogger(empleados.persistence.PersistenceController.class.getName()).log(Level.SEVERE, null, ex);
         }

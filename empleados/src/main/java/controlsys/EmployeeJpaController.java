@@ -2,6 +2,8 @@
 package controlsys;
 
 import controlsys.exceptions.NonexistentEntityException;
+import controlsys.exceptions.PreexistingEntityException;
+import controlsys.exceptions.InvalidDataException;
 import empleados.models.Employee;
 import java.io.Serializable;
 import java.util.List;
@@ -10,6 +12,8 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
@@ -51,8 +55,11 @@ public class EmployeeJpaController implements Serializable {
      * then tries to commit the transaction
      * 
      * @param empleado
+     * @throws NonexistentEntityException
+     * @throws Exception
      */
-    public void create(Employee empleado) {
+    public void create(Employee empleado)
+            throws InvalidDataException, PreexistingEntityException, NonexistentEntityException {
         EntityManager em = null;
         try {
             em = getEntityManager();
@@ -64,6 +71,7 @@ public class EmployeeJpaController implements Serializable {
                 em.close();
             }
         }
+
     }
 
     /**
@@ -74,7 +82,7 @@ public class EmployeeJpaController implements Serializable {
      * @throws NonexistentEntityException
      * @throws Exception
      */
-    public void edit(Employee empleado) throws NonexistentEntityException, Exception {
+    public void edit(Employee empleado) throws NonexistentEntityException, InvalidDataException {
         EntityManager em = null;
         try {
             em = getEntityManager();
@@ -85,8 +93,12 @@ public class EmployeeJpaController implements Serializable {
             String msg = ex.getLocalizedMessage();
             if (msg == null || msg.length() == 0) {
                 int id = empleado.getId();
-                if (findEmployee(id) == null) {
-                    throw new NonexistentEntityException("The employeee with id " + id + " no longer exists.");
+                try {
+                    if (findEmployee(id) == null) {
+                        throw new NonexistentEntityException("The employee with id " + id + " no longer exists.");
+                    }
+                } catch (Exception e) {
+                    throw new InvalidDataException();
                 }
             }
             throw ex;
@@ -118,6 +130,7 @@ public class EmployeeJpaController implements Serializable {
             }
             em.remove(empleado);
             em.getTransaction().commit();
+            System.out.println("Employee deleted");
         } finally {
             if (em != null) {
                 em.close();
@@ -130,9 +143,18 @@ public class EmployeeJpaController implements Serializable {
      * list
      * 
      * @return
+     * @throws Exception
      */
-    public List<Employee> findEmployeeEntities() {
-        return findEmpleadoEntities(true, -1, -1);
+    public List<Employee> findEmployeeEntities() throws Exception {
+        try {
+            return findEmpleadoEntities(true, -1, -1);
+        } catch (InvalidDataException e) {
+            throw new InvalidDataException();
+        } catch (NonexistentEntityException e) {
+            throw new NonexistentEntityException("Couldn't find employees. Params: maxResults: -1, firstResult: -1");
+        } catch (Exception e) {
+            throw new Exception("Couldn't find employees. Params: maxResults: -1, firstResult: -1");
+        }
     }
 
     /**
@@ -142,9 +164,18 @@ public class EmployeeJpaController implements Serializable {
      * @param maxResults
      * @param firstResult
      * @return
+     * @throws Exception
      */
-    public List<Employee> findEmpleadoEntities(int maxResults, int firstResult) {
-        return findEmpleadoEntities(false, maxResults, firstResult);
+    public List<Employee> findEmpleadoEntities(int maxResults, int firstResult)
+            throws Exception {
+        try {
+            return findEmpleadoEntities(false, maxResults, firstResult);
+        } catch (InvalidDataException e) {
+            throw new InvalidDataException();
+        } catch (Exception e) {
+            throw new Exception("Couldn't find employees. Params: maxResults: " + maxResults + ", firstResult: "
+                    + firstResult + " out of bounds.");
+        }
     }
 
     /**
@@ -156,17 +187,22 @@ public class EmployeeJpaController implements Serializable {
      * @param firstResult
      * @return
      */
-    private List<Employee> findEmpleadoEntities(boolean all, int maxResults, int firstResult) {
+    private List<Employee> findEmpleadoEntities(boolean all, int maxResults, int firstResult) throws Exception {
         EntityManager em = getEntityManager();
         try {
-            CriteriaQuery cq = em.getCriteriaBuilder().createQuery();
-            cq.select(cq.from(Employee.class));
-            Query q = em.createQuery(cq);
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<Employee> cq = cb.createQuery(Employee.class);
+            Root<Employee> root = cq.from(Employee.class);
+            cq.select(root);
+            TypedQuery<Employee> query = em.createQuery(cq); // Update the type of Query to TypedQuery<Employee>
             if (!all) {
-                q.setMaxResults(maxResults);
-                q.setFirstResult(firstResult);
+                query.setMaxResults(maxResults);
+                query.setFirstResult(firstResult);
             }
-            return q.getResultList();
+            return query.getResultList(); // Cast the result to List<Employee>
+        } catch (Exception e) {
+            throw new Exception("Couldn't find employees. Params: maxResults: " + maxResults + ", firstResult: "
+                    + firstResult + " out of bounds.");
         } finally {
             em.close();
         }
@@ -178,7 +214,7 @@ public class EmployeeJpaController implements Serializable {
      * @param id
      * @return
      */
-    public Employee findEmployee(int id) {
+    public Employee findEmployee(int id) throws NonexistentEntityException {
         EntityManager em = getEntityManager();
         try {
             return em.find(Employee.class, id);
@@ -196,9 +232,10 @@ public class EmployeeJpaController implements Serializable {
     public int getEmployeeCount() {
         EntityManager em = getEntityManager();
         try {
-            CriteriaQuery cq = em.getCriteriaBuilder().createQuery();
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<Employee> cq = cb.createQuery(Employee.class);
             Root<Employee> rt = cq.from(Employee.class);
-            cq.select(em.getCriteriaBuilder().count(rt));
+            cq.multiselect(cb.count(rt));
             Query q = em.createQuery(cq);
             return ((Long) q.getSingleResult()).intValue();
         } finally {
